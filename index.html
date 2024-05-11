@@ -2,8 +2,16 @@
 <html>
 <head>
 <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width"/>
 <title>文本处理</title>
 <style type="text/css">
+@media screen and (max-width: 600px) {
+  #all {width: 100% !important;display: flex;flex-direction: column;}
+  #main,#side,#side2 {width: 100% !important;}
+  #left_text,#right_text2,#right_text {width: calc(100% - 16px) !important;}
+}
+@media screen and (min-width: 601px) {
+}
 p {margin:20px;padding:0;text-align:center;font:20px Arial;}
 #all {width:1500px;overflow:hidden;}
 #main {width:500px;background-color:#aeb;float:left;}
