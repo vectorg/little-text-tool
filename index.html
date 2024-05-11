@@ -1,0 +1,146 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>文本处理</title>
+<style type="text/css">
+p {margin:20px;padding:0;text-align:center;font:20px Arial;}
+#all {width:1500px;overflow:hidden;}
+#main {width:500px;background-color:#aeb;float:left;}
+#side {width:500px;background-color:#feb;float:left;}
+#side2 {width:500px;background-color:rgb(220, 234, 246);float:left;}
+#left_text{width:480px;height:500px;background-color:aliceblue;margin-left: 8px;float:left;font:16px Arial;}
+#right_text{width:480px;height:500px;background-color:azure;margin-right: 8px;float:right;font:16px Arial;}
+#right_text2{width:480px;height:420px;background-color:rgb(217, 211, 242);margin-right: 8px;float:right;font:16px Arial;}
+#left_bt,#left_sel,#left_clear{width:100px;height:30px;float:right;margin-right:7px;margin-bottom:10px;font:16px Arial;}
+#right_bt,#right_sel,#right_clear{width:100px;height:30px;float:right;margin-right:7px;margin-bottom:10px;font:16px Arial;}
+#right_bt2,#right_sel2,#right_clear2{width:110px;height:30px;float:right;margin-right:7px;margin-bottom:10px;font:16px Arial;}
+.init{text-align: left;font:16px Arial;}
+</style>
+</head>
+<body>
+  <div id="all">
+    <div id="main">
+      <p>原文本</p>
+      <!-- <button id='left_bt' onclick="counter()">统计</button> -->
+      <button id='left_clear' onclick='$("left_text").value="";$("left_text").focus();'>清空</button>
+      <textarea id='left_text'></textarea>
+    </div>
+    <div id="side">
+      <p>结果</p>
+      <button id='right_clear' onclick='$("right_text").value="";$("right_text").focus();'>清空</button>
+      <textarea id='right_text'></textarea>
+    </div>
+    <div id="side2">
+      <p>处理代码</p>
+      <p class="init">
+        let text=$("left_text").value, answer; <br>
+        answer=fun(text); <br>
+        $("right_text").value=answer;
+      </p>
+      <button id='right_bt2' onclick="runCode()">处理</button>
+      <select id="right_sel2" onchange="change_fun(this)">
+        <option><选择方法></option>
+        <option>按行反转</option>
+        <option>统计单词</option>
+        <option>提取网址</option>
+        <option>小红书换行</option>
+      </select>
+      <button id='right_clear2' onclick='$("right_text2").value="";$("right_text2").focus();'>清空</button>
+      <textarea id='right_text2'></textarea>
+    </div>
+  </div>
+  <script>
+    "use strict";
+    function $(s) {
+      return document.getElementById(s) ? document.getElementById(s) : s;
+		}
+    function runCode() {
+      const code = document.getElementById('right_text2').value;
+      eval(code);
+    };
+    const runBtn = document.getElementById('right_bt2');
+    runBtn.addEventListener('click', () => {
+      runCode();
+    });
+    function change_fun(sel){
+      console.log('进入 '+sel.value+sel.selectedIndex);
+      $('right_text2').value=codes[sel.selectedIndex];
+    }
+    let codes=['',
+`
+function reverseText(input) {
+  // 获取输入框中的文本
+  //var input = document.getElementById("inputText").value.trim();
+
+  // 按行拆分文本，反转顺序
+  var output = input.split('\\n').reverse().join('\\n');
+
+  // 显示反转后的文本
+  //document.getElementById("outputText").value = output;
+  return output;
+};
+let text=$("left_text").value, answer;
+answer=reverseText(text);
+$("right_text").value=answer;
+`,
+`
+const text=$("left_text").value;
+let dict={},array=[],answer='';
+text.split('\\n').map(x=>x.trim().split(/[，、。,\. ]/)).forEach(x=>x.forEach(y=>y?y in dict?dict[y]+=1:dict[y]=1:''));
+for(const key in dict){
+  array.push([key,dict[key]]);
+}
+array.sort((a, b)=>b[1]-a[1]);
+array.forEach(x=>answer+=x[0]+': '+x[1]+'\\n');
+$("right_text").value=answer;
+//split(/\W/)
+`,
+`
+let text=$("left_text").value, answer='';
+// 匹配HTTP或HTTPS开头的链接
+const linkRegex =/(?:http(s)?:\\/\\/)?[\\w.-]+(?:\\.[\\w\\.-]+)+[\\w\\-\\._~:/?#[\\]@!\\$&'\\*\\+,;=.]+/gi;
+const links = text.match(linkRegex);
+if(links){
+for (let i = 0; i < links.length; i++) {
+  answer+=links[i]+'\\n';
+}
+}
+else{
+answer='no links';
+}
+$("right_text").value=answer;
+`,
+`
+let text=$("left_text").value, answer;
+answer=text.replace(/\\n/g, '&#10;');
+$("right_text").value=answer;
+`
+    ];
+
+/*
+参考链接
+JavaScript 中正则表达式验证 URL 网址合法性，亲测有效_js正则校验url_青颜的天空的博客-CSDN博客 https://blog.csdn.net/a1056244734/article/details/116519626
+
+JavaScript中用于验证网址的正则表达式可以是：
+/^(?:http(s)?://)?\w.-[\w-._~:/?#[]@!$&'*\ ,;=.]$/
+这个正则表达式可以有效地验证以下类型的网址：
+https://www.example.com
+http://www.example.com
+www.example.com
+example.com
+http://blog.example.com
+http://www.example.com/product
+http://www.example.com/products?id=1&page=2
+http://www.example.com#up
+http://255.255.255.255
+255.255.255.255
+http://invalid.com/perl.cgi?key= | http://web-site.com/cgi-bin/perl.cgi?key1=value1&key2
+http://www.site.com:8008
+
+你可以在https://regexr.com/上使用这个正则表达式进行在线验证。
+//要注意在正则表达式里面添加转义符
+*/
+  </script>
+</body>
+</html>
