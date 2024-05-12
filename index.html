@@ -7,55 +7,58 @@
 <style type="text/css">
 @media screen and (max-width: 600px) {
   #all {width: 100% !important;display: flex;flex-direction: column;}
-  #main,#side,#side2 {width: 100% !important;}
-  #left_text,#right_text2,#right_text {width: calc(100% - 16px) !important;}
+  #code_div,#original_div,#processed_div {width: 100% !important;}
+  #code_text,#original_text,#processed_text {width: calc(100% - 16px) !important;}
 }
 @media screen and (min-width: 601px) {
 }
 p {margin:20px;padding:0;text-align:center;font:20px Arial;}
 #all {width:1500px;overflow:hidden;}
-#main {width:500px;background-color:#aeb;float:left;}
-#side {width:500px;background-color:#feb;float:left;}
-#side2 {width:500px;background-color:rgb(220, 234, 246);float:left;}
-#left_text{width:480px;height:500px;background-color:aliceblue;margin-left: 8px;float:left;font:16px Arial;}
-#right_text{width:480px;height:500px;background-color:azure;margin-right: 8px;float:right;font:16px Arial;}
-#right_text2{width:480px;height:420px;background-color:rgb(217, 211, 242);margin-right: 8px;float:right;font:16px Arial;}
-#left_bt,#left_sel,#left_clear{width:100px;height:30px;float:right;margin-right:7px;margin-bottom:10px;font:16px Arial;}
-#right_bt,#right_sel,#right_clear{width:100px;height:30px;float:right;margin-right:7px;margin-bottom:10px;font:16px Arial;}
-#right_bt2,#right_sel2,#right_clear2{width:110px;height:30px;float:right;margin-right:7px;margin-bottom:10px;font:16px Arial;}
+#code_div {width:500px;background-color:rgb(220, 234, 246);float:left;}
+#original_div {width:500px;background-color:#aeb;float:left;}
+#processed_div {width:500px;background-color:#feb;float:left;}
+#code_text{width:480px;height:420px;background-color:rgb(217, 211, 242);margin-right: 8px;float:right;font:16px Arial;}
+#original_text{width:480px;height:500px;background-color:aliceblue;margin-left: 8px;float:left;font:16px Arial;}
+#processed_text{width:480px;height:500px;background-color:azure;margin-right: 8px;float:right;font:16px Arial;}
+#code_bt,#code_sel,#code_clear{width:100px;height:30px;float:right;margin-right:7px;margin-bottom:10px;font:16px Arial;}
+#original_bt,#original_sel,#original_clear{width:100px;height:30px;float:right;margin-right:7px;margin-bottom:10px;font:16px Arial;}
+#processed_bt,#processed_sel,#processed_clear,#original_copy,#processed_copy,#code_copy{width:100px;height:30px;float:right;margin-right:7px;margin-bottom:10px;font:16px Arial;}
 .init{text-align: left;font:16px Arial;}
 </style>
 </head>
 <body>
   <div id="all">
-    <div id="main">
-      <p>原文本</p>
-      <!-- <button id='left_bt' onclick="counter()">统计</button> -->
-      <button id='left_clear' onclick='$("left_text").value="";$("left_text").focus();'>清空</button>
-      <textarea id='left_text'></textarea>
-    </div>
-    <div id="side">
-      <p>结果</p>
-      <button id='right_clear' onclick='$("right_text").value="";$("right_text").focus();'>清空</button>
-      <textarea id='right_text'></textarea>
-    </div>
-    <div id="side2">
+    <div id="code_div">
       <p>处理代码</p>
       <p class="init">
-        let text=$("left_text").value, answer; <br>
+        let text=$("original_text").value, answer; <br>
         answer=fun(text); <br>
-        $("right_text").value=answer;
+        $("processed_text").value=answer;
       </p>
-      <button id='right_bt2' onclick="runCode()">处理</button>
-      <select id="right_sel2" onchange="change_fun(this)">
+      <button id='code_bt' onclick="runCode()">处理</button>
+      <select id="code_sel" onchange="change_fun(this)">
         <option><选择方法></option>
         <option>按行反转</option>
         <option>统计单词</option>
         <option>提取网址</option>
         <option>小红书换行</option>
       </select>
-      <button id='right_clear2' onclick='$("right_text2").value="";$("right_text2").focus();'>清空</button>
-      <textarea id='right_text2'></textarea>
+      <button id='code_copy' onclick='code_text.select();document.execCommand("Copy");'>复制</button>
+      <button id='code_clear' onclick='$("code_text").value="";$("code_text").focus();'>清空</button>
+      <textarea id='code_text'></textarea>
+    </div>
+    <div id="original_div">
+      <p>原文本</p>
+      <!-- <button id='original_bt' onclick="counter()">统计</button> -->
+      <button id='original_copy' onclick='original_text.select();document.execCommand("Copy");'>复制</button>
+      <button id='original_clear' onclick='$("original_text").value="";$("original_text").focus();'>清空</button>
+      <textarea id='original_text'></textarea>
+    </div>
+    <div id="processed_div">
+      <p>结果</p>
+      <button id='processed_copy' onclick='processed_text.select();document.execCommand("Copy");'>复制</button>
+      <button id='processed_clear' onclick='$("processed_text").value="";$("processed_text").focus();'>清空</button>
+      <textarea id='processed_text'></textarea>
     </div>
   </div>
   <script>
@@ -64,16 +67,16 @@ p {margin:20px;padding:0;text-align:center;font:20px Arial;}
       return document.getElementById(s) ? document.getElementById(s) : s;
 		}
     function runCode() {
-      const code = document.getElementById('right_text2').value;
+      const code = document.getElementById('code_text').value;
       eval(code);
     };
-    const runBtn = document.getElementById('right_bt2');
+    const runBtn = document.getElementById('code_bt');
     runBtn.addEventListener('click', () => {
       runCode();
     });
     function change_fun(sel){
       console.log('进入 '+sel.value+sel.selectedIndex);
-      $('right_text2').value=codes[sel.selectedIndex];
+      $('code_text').value=codes[sel.selectedIndex];
     }
     let codes=['',
 `
@@ -88,12 +91,12 @@ function reverseText(input) {
   //document.getElementById("outputText").value = output;
   return output;
 };
-let text=$("left_text").value, answer;
+let text=$("original_text").value, answer;
 answer=reverseText(text);
-$("right_text").value=answer;
+$("processed_text").value=answer;
 `,
 `
-const text=$("left_text").value;
+const text=$("original_text").value;
 let dict={},array=[],answer='';
 text.split('\\n').map(x=>x.trim().split(/[，、。,\. ]/)).forEach(x=>x.forEach(y=>y?y in dict?dict[y]+=1:dict[y]=1:''));
 for(const key in dict){
@@ -101,11 +104,11 @@ for(const key in dict){
 }
 array.sort((a, b)=>b[1]-a[1]);
 array.forEach(x=>answer+=x[0]+': '+x[1]+'\\n');
-$("right_text").value=answer;
+$("processed_text").value=answer;
 //split(/\W/)
 `,
 `
-let text=$("left_text").value, answer='';
+let text=$("original_text").value, answer='';
 // 匹配HTTP或HTTPS开头的链接
 const linkRegex =/(?:http(s)?:\\/\\/)?[\\w.-]+(?:\\.[\\w\\.-]+)+[\\w\\-\\._~:/?#[\\]@!\\$&'\\*\\+,;=.]+/gi;
 const links = text.match(linkRegex);
@@ -117,12 +120,12 @@ for (let i = 0; i < links.length; i++) {
 else{
 answer='no links';
 }
-$("right_text").value=answer;
+$("processed_text").value=answer;
 `,
 `
-let text=$("left_text").value, answer;
+let text=$("original_text").value, answer;
 answer=text.replace(/\\n/g, '&#10;');
-$("right_text").value=answer;
+$("processed_text").value=answer;
 `
     ];
 
