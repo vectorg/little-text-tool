@@ -17,12 +17,13 @@ p {margin:20px;padding:0;text-align:center;font:20px Arial;}
 #code_div {width:500px;background-color:rgb(220, 234, 246);float:left;}
 #original_div {width:500px;background-color:#aeb;float:left;}
 #processed_div {width:500px;background-color:#feb;float:left;}
-#code_text{width:480px;height:420px;background-color:rgb(217, 211, 242);margin-right: 8px;float:right;font:16px Arial;}
+#code_text{width:480px;height:455px;background-color:rgb(236, 231, 255);margin-right: 8px;float:right;font:16px Arial;}
 #original_text{width:480px;height:500px;background-color:aliceblue;margin-left: 8px;float:left;font:16px Arial;}
 #processed_text{width:480px;height:500px;background-color:azure;margin-right: 8px;float:right;font:16px Arial;}
-#code_bt,#code_sel,#code_clear{width:100px;height:30px;float:right;margin-right:7px;margin-bottom:10px;font:16px Arial;}
-#original_bt,#original_sel,#original_clear{width:100px;height:30px;float:right;margin-right:7px;margin-bottom:10px;font:16px Arial;}
-#processed_bt,#processed_sel,#processed_clear,#original_copy,#processed_copy,#code_copy{width:100px;height:30px;float:right;margin-right:7px;margin-bottom:10px;font:16px Arial;}
+#code_process,#code_clear{width:100px;height:30px;float:right;margin-right:7px;margin-bottom:10px;font:16px Arial;}
+#code_sel{width:110px;height:30px;float:right;margin-right:7px;margin-bottom:10px;font:16px Arial;}
+#original_process,#original_sel,#original_clear{width:100px;height:30px;float:right;margin-right:7px;margin-bottom:10px;font:16px Arial;}
+#processed_sel,#processed_clear,#original_copy,#processed_copy,#code_copy{width:100px;height:30px;float:right;margin-right:7px;margin-bottom:10px;font:16px Arial;}
 .init{text-align: left;font:16px Arial;}
 </style>
 </head>
@@ -30,12 +31,19 @@ p {margin:20px;padding:0;text-align:center;font:20px Arial;}
   <div id="all">
     <div id="code_div">
       <p>处理代码</p>
-      <p class="init">
-        let text=$("original_text").value, answer; <br>
-        answer=fun(text); <br>
-        $("processed_text").value=answer;
-      </p>
-      <button id='code_bt' onclick="runCode()">处理</button>
+      <details>
+        <summary>初始代码&nbsp;&nbsp;&nbsp;&nbsp;<button onclick="$('code_text').value=init_p.innerText.replace(/^ {8,12}/gm, '');">重置</button></summary>
+        <p id="init_p" class="init">
+            var text=$("original_text").value, answer; <br>
+            answer=fun(text); <br>
+            $("processed_text").value=answer;<br>
+            function fun(input){<br>
+            &nbsp;&nbsp;&nbsp;&nbsp;var output = input;<br>
+            &nbsp;&nbsp;&nbsp;&nbsp;return output;<br>
+            }<br>
+        </p>
+      </details><br>
+      <button id='code_process' onclick="runCode()">处理</button>
       <select id="code_sel" onchange="change_fun(this)">
         <option><选择方法></option>
         <option>按行反转</option>
@@ -49,8 +57,8 @@ p {margin:20px;padding:0;text-align:center;font:20px Arial;}
     </div>
     <div id="original_div">
       <p>原文本</p>
-      <!-- <button id='original_bt' onclick="counter()">统计</button> -->
       <button id='original_copy' onclick='original_text.select();document.execCommand("Copy");'>复制</button>
+      <button id='original_process' onclick='runCode()'>处理</button>
       <button id='original_clear' onclick='$("original_text").value="";$("original_text").focus();'>清空</button>
       <textarea id='original_text'></textarea>
     </div>
@@ -70,7 +78,7 @@ p {margin:20px;padding:0;text-align:center;font:20px Arial;}
       const code = document.getElementById('code_text').value;
       eval(code);
     };
-    const runBtn = document.getElementById('code_bt');
+    const runBtn = document.getElementById('code_process');
     runBtn.addEventListener('click', () => {
       runCode();
     });
@@ -128,30 +136,6 @@ answer=text.replace(/\\n/g, '&#10;');
 $("processed_text").value=answer;
 `
     ];
-
-/*
-参考链接
-JavaScript 中正则表达式验证 URL 网址合法性，亲测有效_js正则校验url_青颜的天空的博客-CSDN博客 https://blog.csdn.net/a1056244734/article/details/116519626
-
-JavaScript中用于验证网址的正则表达式可以是：
-/^(?:http(s)?://)?\w.-[\w-._~:/?#[]@!$&'*\ ,;=.]$/
-这个正则表达式可以有效地验证以下类型的网址：
-https://www.example.com
-http://www.example.com
-www.example.com
-example.com
-http://blog.example.com
-http://www.example.com/product
-http://www.example.com/products?id=1&page=2
-http://www.example.com#up
-http://255.255.255.255
-255.255.255.255
-http://invalid.com/perl.cgi?key= | http://web-site.com/cgi-bin/perl.cgi?key1=value1&key2
-http://www.site.com:8008
-
-你可以在https://regexr.com/上使用这个正则表达式进行在线验证。
-//要注意在正则表达式里面添加转义符
-*/
   </script>
 </body>
 </html>
