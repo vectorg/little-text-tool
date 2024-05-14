@@ -20,15 +20,48 @@ p {margin:20px;padding:0;text-align:center;font:20px Arial;}
 .init{text-align: left;font:16px Arial;}
 #export,#save,#name,#delete{width:100px;height:30px;float:right;margin-right:7px;margin-bottom:10px;font:16px Arial;}
 br.mobile-br {display: none;}
+#reset,#save_all_bt{width:100px;height:30px;margin-right:7px;margin-bottom:10px;font:16px Arial;}
 @media screen and (max-width: 600px) {
   #all {width: 100% !important;display: flex;flex-direction: column;}
   #code_div,#original_div,#processed_div {width: 100% !important;}
   #code_text,#original_text,#processed_text {width: calc(100% - 16px) !important;}
-  #export,#save,#name,#delete{width:60px;height:30px;float:auto;margin-right:7px;margin-bottom:10px;font:16px Arial;}
+  #export,#save,#delete{width:60px;height:30px;float:auto;margin-right:7px;margin-bottom:10px;font:16px Arial;}
   #code_process,#code_clear,#code_copy{width:60px;height:30px;float:left;margin-right:7px;margin-bottom:10px;font:16px Arial;}
   br.mobile-br {display: inline;}
 }
 @media screen and (min-width: 601px) {
+}
+.custom-file-upload {
+    display: inline-block;
+    padding: 5px 5px;
+    cursor: pointer;
+    color: #333;
+    background-color: #fff;
+    /* border: 1px solid #ddd; */
+    border-radius: 4px;
+    text-align: center;
+    font-size: 16px;
+    /* line-height: 1.5; */
+    position: relative;
+    /* overflow: hidden; */
+    left: 10px;
+}
+
+.custom-file-upload input[type="file"] {
+    cursor: pointer;
+    position: absolute;
+    top: 0;
+    right: 0;
+    min-width: 100%;
+    min-height: 100%;
+    font-size: 100px;
+    text-align: right;
+    filter: alpha(opacity=0);
+    opacity: 0;
+    outline: none;
+    background: white;
+    display: block;
+    cursor: inherit;
 }
 </style>
 </head>
@@ -37,7 +70,11 @@ br.mobile-br {display: none;}
     <div id="code_div">
       <p>处理代码</p>
       <details>
-        <summary>初始代码&nbsp;&nbsp;&nbsp;&nbsp;<button onclick="$('code_text').value=init_p.innerText.replace(/^ {8,12}/gm, '');">重置</button></summary>
+        <summary>初始代码&nbsp;&nbsp;&nbsp;&nbsp;
+          <button id="reset" onclick="$('code_text').value=init_p.innerText.replace(/^ {8,12}/gm, '');">重置</button>
+          <button id="save_all_bt" onclick="save_all_method()">保存所有</button>
+          <span id="showFileName"></span> <span id="showUpdateNum"></span>
+        </summary>
         <p id="init_p" class="init">
             var text=$("original_text").value, answer; <br>
             answer=fun(text); <br>
@@ -47,12 +84,15 @@ br.mobile-br {display: none;}
             &nbsp;&nbsp;&nbsp;&nbsp;return output;<br>
             }<br>
         </p>
-      </details><br>
-      
-      <button id='export' onclick='"还没开发，但是这里不放个按钮对齐又乱了"'>导出</button>
+      </details>
+      <!-- <br> -->
+    <!-- <pre id="contentDisplay"></pre> -->
+    <input type="file" id="fileInput" style="display:none">
+      <button id='export' onclick='export_method()'>导出</button>
+      <label id="import" for="fileInput" class="custom-file-upload">导入</label>
       <button id='save' onclick='save_method()'>保存</button>
       <button id='delete' onclick='delete_method()'>删除</button>
-      <input id='name'><br><br><br class="mobile-br"><!-- 不加mobile-br手机上'处理'按钮不对齐(较高)；改为float:left也是为了对齐 -->
+      <input id='name' placeholder='命名新方法'><br><br class="mobile-br"><!-- 不加mobile-br手机上'处理'按钮不对齐(较高)；改为float:left也是为了对齐 -->
       <button id='code_process' onclick="runCode()">处理</button>
       <select id="code_sel" onchange="change_fun(this)">
         <option><选择方法></option>
@@ -89,19 +129,41 @@ br.mobile-br {display: none;}
         console.log('用默认的函数');
         var codes=get_original_dict();
     }
-    //把这些函数名更新到选项中
-    for (let [key, value] of Object.entries(codes)) {
-        console.log(key, value);
-        var selectElement = document.getElementById("code_sel");
-        var newOption = document.createElement("option");
-        newOption.value = key;
-        newOption.text = key;
-        selectElement.insertBefore(newOption, $('new_method'));
-    }
+    update_function(true);
+    listen_import_method();
 
+    function update_function(at_init=false){
+        //把这些函数名更新到选项中
+        // 创建一个映射来存储已存在的选项值
+        const existingOptions = new Map();
+        // 遍历 select 元素的所有选项，并将它们的值存入映射
+        const selectElement = document.getElementById("code_sel");
+        for (let i = 0; i < selectElement.options.length; i++) {
+            existingOptions.set(selectElement.options[i].value, true);
+        }
+        let UpdateNum=0;
+        // 遍历 codes 对象，并添加不存在的选项
+        for (let [key, value] of Object.entries(codes)) {
+            console.log(key, value);
+            // 如果映射中没有这个键，则添加新选项
+            if (!existingOptions.has(key)) {
+                var newOption = document.createElement("option");
+                newOption.value = key;
+                newOption.text = key;
+                // selectElement.add(newOption);//添加在末尾
+                selectElement.insertBefore(newOption, $('new_method'));
+                // 将新添加的选项值存入映射，以便于后续的检查
+                existingOptions.set(key, true);
+                UpdateNum+=1;
+            }
+        }
+        if(!at_init&&UpdateNum){
+          $('showUpdateNum').innerText='新增'+UpdateNum+'个函数';
+        }
+    }
     function $(s) {
       return document.getElementById(s) ? document.getElementById(s) : s;
-	  }
+	}
     function runCode() {
       const code = document.getElementById('code_text').value;
       eval(code);
@@ -133,7 +195,7 @@ br.mobile-br {display: none;}
         let key=$('name').value;
         let value=$('code_text').value;
         //如果已经存在同名函数
-        if(key in codes){
+        if(key!=$('code_sel').value && key in codes){
           alert('存在同名函数');
           return;
         }
@@ -155,6 +217,11 @@ br.mobile-br {display: none;}
         //保存到localStorage
         var obj = { methods: codes };
         localStorage.setItem('little-text-tool', JSON.stringify(obj));
+    }
+
+    function save_all_method(){
+      var obj = { methods: codes };
+      localStorage.setItem('little-text-tool', JSON.stringify(obj));
     }
 
     function delete_method(){
@@ -180,6 +247,72 @@ br.mobile-br {display: none;}
       //保存到localStorage
       var obj = { methods: codes };
       localStorage.setItem('little-text-tool', JSON.stringify(obj));
+    }
+
+    function export_method(){
+      // 获取localStorage中的"xx"字段
+      const fieldContent = localStorage.getItem('little-text-tool');
+      
+      // 如果字段存在，将其转化为字符串
+      if (fieldContent !== null) {
+          const contentAsString = JSON.stringify(fieldContent);
+          // const contentAsString = fieldContent.replace(/\\n/g, '\r\n');
+
+
+          // 创建一个Blob对象，并将其类型设置为文本
+          const blob = new Blob([contentAsString], { type: 'text/plain' });
+
+          // 创建一个临时的URL对象
+          const url = URL.createObjectURL(blob);
+
+          // 创建一个a元素并设置下载属性
+          const a = document.createElement('a');
+          a.href = url;
+          a.download = 'little-text-tool.txt'; // 设置下载的文件名
+          document.body.appendChild(a);
+          a.click();
+
+          // 清理临时的URL对象
+          URL.revokeObjectURL(url);
+          document.body.removeChild(a);
+      } else {
+          alert('localStorage中没有数据，需要先保存一次。');
+      }
+    }
+    
+    function listen_import_method(){
+      document.getElementById('fileInput').addEventListener('change', function(event) {
+        console.log(event.target.files);
+            const files = event.target.files;
+            if (!files.length) {
+                return;
+            }
+
+            const file = files[0];
+            const fileName = file.name;
+            $(showFileName).innerText=fileName;
+            const reader = new FileReader();
+
+            reader.onload = function(e) {
+                const content = e.target.result;
+                console.log(content);
+                // document.getElementById('contentDisplay').textContent = content;//显示文件内容
+                var data = JSON.parse(JSON.parse(content));
+                if(data && data['methods']){
+                    console.log('从导入文件加载');
+                    console.log (data);
+
+                    codes=data['methods'];
+                    console.log ('codes',codes);
+                    update_function();
+                }
+                else{
+                    console.log('导入失败');
+                }
+            };
+
+            reader.readAsText(file);
+        });
     }
 
     function updateString(str) {
