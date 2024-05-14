@@ -5,19 +5,12 @@
 <meta name="viewport" content="width=device-width"/>
 <title>文本处理</title>
 <style type="text/css">
-@media screen and (max-width: 600px) {
-  #all {width: 100% !important;display: flex;flex-direction: column;}
-  #code_div,#original_div,#processed_div {width: 100% !important;}
-  #code_text,#original_text,#processed_text {width: calc(100% - 16px) !important;}
-}
-@media screen and (min-width: 601px) {
-}
 p {margin:20px;padding:0;text-align:center;font:20px Arial;}
 #all {width:1500px;overflow:hidden;}
 #code_div {width:500px;background-color:rgb(220, 234, 246);float:left;}
 #original_div {width:500px;background-color:#aeb;float:left;}
 #processed_div {width:500px;background-color:#feb;float:left;}
-#code_text{width:480px;height:455px;background-color:rgb(236, 231, 255);margin-right: 8px;float:right;font:16px Arial;}
+#code_text{width:480px;height:413px;background-color:rgb(236, 231, 255);margin-right: 8px;float:right;font:16px Arial;}
 #original_text{width:480px;height:500px;background-color:aliceblue;margin-left: 8px;float:left;font:16px Arial;}
 #processed_text{width:480px;height:500px;background-color:azure;margin-right: 8px;float:right;font:16px Arial;}
 #code_process,#code_clear{width:100px;height:30px;float:right;margin-right:7px;margin-bottom:10px;font:16px Arial;}
@@ -25,6 +18,18 @@ p {margin:20px;padding:0;text-align:center;font:20px Arial;}
 #original_process,#original_sel,#original_clear{width:100px;height:30px;float:right;margin-right:7px;margin-bottom:10px;font:16px Arial;}
 #processed_sel,#processed_clear,#original_copy,#processed_copy,#code_copy{width:100px;height:30px;float:right;margin-right:7px;margin-bottom:10px;font:16px Arial;}
 .init{text-align: left;font:16px Arial;}
+#export,#save,#name,#delete{width:100px;height:30px;float:right;margin-right:7px;margin-bottom:10px;font:16px Arial;}
+br.mobile-br {display: none;}
+@media screen and (max-width: 600px) {
+  #all {width: 100% !important;display: flex;flex-direction: column;}
+  #code_div,#original_div,#processed_div {width: 100% !important;}
+  #code_text,#original_text,#processed_text {width: calc(100% - 16px) !important;}
+  #export,#save,#name,#delete{width:60px;height:30px;float:auto;margin-right:7px;margin-bottom:10px;font:16px Arial;}
+  #code_process,#code_clear,#code_copy{width:60px;height:30px;float:left;margin-right:7px;margin-bottom:10px;font:16px Arial;}
+  br.mobile-br {display: inline;}
+}
+@media screen and (min-width: 601px) {
+}
 </style>
 </head>
 <body>
@@ -43,13 +48,15 @@ p {margin:20px;padding:0;text-align:center;font:20px Arial;}
             }<br>
         </p>
       </details><br>
+      
+      <button id='export' onclick='"还没开发，但是这里不放个按钮对齐又乱了"'>导出</button>
+      <button id='save' onclick='save_method()'>保存</button>
+      <button id='delete' onclick='delete_method()'>删除</button>
+      <input id='name'><br><br><br class="mobile-br"><!-- 不加mobile-br手机上'处理'按钮不对齐(较高)；改为float:left也是为了对齐 -->
       <button id='code_process' onclick="runCode()">处理</button>
       <select id="code_sel" onchange="change_fun(this)">
         <option><选择方法></option>
-        <option>按行反转</option>
-        <option>统计单词</option>
-        <option>提取网址</option>
-        <option>小红书换行</option>
+        <option id="new_method">+新建方法+</option>
       </select>
       <button id='code_copy' onclick='code_text.select();document.execCommand("Copy");'>复制</button>
       <button id='code_clear' onclick='$("code_text").value="";$("code_text").focus();'>清空</button>
@@ -71,23 +78,129 @@ p {margin:20px;padding:0;text-align:center;font:20px Arial;}
   </div>
   <script>
     "use strict";
+    //加载localStorage中的数据
+    var data = JSON.parse(localStorage.getItem('little-text-tool'));
+    if(data && data['methods']){
+        console.log('从localStorage加载');
+        var codes=data['methods'];
+    }
+    else{
+        //如果没有就用原始的函数
+        console.log('用默认的函数');
+        var codes=get_original_dict();
+    }
+    //把这些函数名更新到选项中
+    for (let [key, value] of Object.entries(codes)) {
+        console.log(key, value);
+        var selectElement = document.getElementById("code_sel");
+        var newOption = document.createElement("option");
+        newOption.value = key;
+        newOption.text = key;
+        selectElement.insertBefore(newOption, $('new_method'));
+    }
+
     function $(s) {
       return document.getElementById(s) ? document.getElementById(s) : s;
-		}
+	  }
     function runCode() {
       const code = document.getElementById('code_text').value;
       eval(code);
     };
-    const runBtn = document.getElementById('code_process');
-    runBtn.addEventListener('click', () => {
-      runCode();
-    });
     function change_fun(sel){
-      console.log('进入 '+sel.value+sel.selectedIndex);
-      $('code_text').value=codes[sel.selectedIndex];
+      //改变选项
+      console.log('进入 '+sel.value+',Index='+sel.selectedIndex);
+      if(sel.value=='<选择方法>'){
+        console.log('回到初始状态');
+        $('name').value='<选择方法>';
+        $('code_text').value='';
+        return;
+      }
+      if(sel.value=='+新建方法+'){
+        console.log('正则自定义函数');
+        var new_name='未命名';
+        while(new_name in codes){
+            new_name=updateString(new_name);
+        }
+        $('name').value=new_name;
+        $('code_text').value='';
+        return;
+      }
+      $('name').value=sel.value;
+      $('code_text').value=codes[sel.value];
     }
-    let codes=['',
-`
+
+    function save_method(){
+        let key=$('name').value;
+        let value=$('code_text').value;
+        //如果已经存在同名函数
+        if(key in codes){
+          alert('存在同名函数');
+          return;
+        }
+        if(key=='+新建方法+' || key=='<选择方法>' || key==''){
+          alert('该名字不可用');
+          return;
+        }
+        codes[key]=value;
+        //如果选项和命名不同，新增方法
+        if($('code_sel').value!=key){
+            var selectElement = document.getElementById("code_sel");
+            var newOption = document.createElement("option");
+            newOption.value = key;
+            newOption.text = key;
+            selectElement.insertBefore(newOption, $('new_method'));
+            //新增时就选中该选项
+            selectElement.selectedIndex = selectElement.options.length - 2;
+        }
+        //保存到localStorage
+        var obj = { methods: codes };
+        localStorage.setItem('little-text-tool', JSON.stringify(obj));
+    }
+
+    function delete_method(){
+      let key=$('name').value;
+      //选项和命名相同才能删除
+      if($('code_sel').value==key){
+          delete codes[key];
+          // 假设你的<select>元素的ID是"mySelect"
+          var selectElement = document.getElementById("code_sel");
+          // 遍历<select>的所有<option>元素
+          for (var i = 0; i < selectElement.options.length; i++) {
+              // 检查<option>元素的值是否为"a"
+              if (selectElement.options[i].value === key) {
+                  // 如果是，则从<select>元素中删除该<option>元素
+                  selectElement.options[i].remove();
+                  break; // 如果只需要删除一个值，删除后即可退出循环
+              }
+          }
+      }
+      else{
+          alert('名称和选项不同，删除失败。')
+      }
+      //保存到localStorage
+      var obj = { methods: codes };
+      localStorage.setItem('little-text-tool', JSON.stringify(obj));
+    }
+
+    function updateString(str) {
+        //如果xx以(数字)结尾，把该数字加一，否则在末尾加(1)
+        // 正则表达式匹配以(数字)结尾的字符串
+        var match = str.match(/\((\d+)\)$/);
+        if (match) {
+            // 如果匹配到，取出数字并加一
+            var number = parseInt(match[1], 10) + 1;
+            // 替换原字符串中的数字
+            return str.slice(0, -match[1].length-1) + number + ')';
+        } else {
+            // 如果没有匹配到，直接在末尾加上(1)
+            return str + "(1)";
+        }
+    }
+
+
+    function get_original_dict(){
+        return {
+    '按行反转':`
 function reverseText(input) {
   // 获取输入框中的文本
   //var input = document.getElementById("inputText").value.trim();
@@ -103,7 +216,7 @@ let text=$("original_text").value, answer;
 answer=reverseText(text);
 $("processed_text").value=answer;
 `,
-`
+    '统计单词':`
 const text=$("original_text").value;
 let dict={},array=[],answer='';
 text.split('\\n').map(x=>x.trim().split(/[，、。,\. ]/)).forEach(x=>x.forEach(y=>y?y in dict?dict[y]+=1:dict[y]=1:''));
@@ -115,7 +228,7 @@ array.forEach(x=>answer+=x[0]+': '+x[1]+'\\n');
 $("processed_text").value=answer;
 //split(/\W/)
 `,
-`
+    '提取网址':`
 let text=$("original_text").value, answer='';
 // 匹配HTTP或HTTPS开头的链接
 const linkRegex =/(?:http(s)?:\\/\\/)?[\\w.-]+(?:\\.[\\w\\.-]+)+[\\w\\-\\._~:/?#[\\]@!\\$&'\\*\\+,;=.]+/gi;
@@ -130,12 +243,13 @@ answer='no links';
 }
 $("processed_text").value=answer;
 `,
-`
+    '小红书换行':`
 let text=$("original_text").value, answer;
 answer=text.replace(/\\n/g, '&#10;');
 $("processed_text").value=answer;
 `
-    ];
+        };
+    }
   </script>
 </body>
 </html>
